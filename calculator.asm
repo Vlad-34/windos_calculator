@@ -27,6 +27,27 @@ area dd 0
 title_start_x equ 155
 button_size equ 120
 
+button_9_x equ 0
+button_9_y equ 160
+button_8_x equ 120
+button_8_y equ 160
+button_7_x equ 240
+button_7_y equ 160
+button_plus_x equ 360
+button_plus_y equ 520
+button_minus_x equ 360
+button_minus_y equ 400
+button_times_x equ 360
+button_times_y equ 280
+button_divided_x equ 360
+button_divided_y equ 160
+button_equal_x equ 240
+button_equal_y equ 520
+button_clear_x equ 0
+button_clear_y equ 520
+
+
+
 counter dd 0 ; numara evenimentele de tip timer
 
 arg1 equ 8
@@ -46,7 +67,7 @@ include symbols.inc
 ; arg2 - pointer la vectorul de pixeli
 ; arg3 - pos_x
 ; arg4 - pos_y
-make_text proc
+make_text proc ;grafica
 	push ebp
 	mov ebp, esp
 	pusha
@@ -149,6 +170,7 @@ make_text_macro macro symbol, drawArea, x, y
 	add esp, 16
 endm
 
+; un macro ca sa apelam mai usor desenarea liniilor orizontale
 make_horizontal_line_macro macro x, y, len, color
 local horizontal_line_loop
 	mov eax, y ;eax = y
@@ -164,6 +186,7 @@ horizontal_line_loop:
 	loop horizontal_line_loop
 endm
 
+; un macro ca sa apelam mai usor desenarea liniilor verticale
 make_vertical_line_macro macro x, y, len, color
 local vertical_line_loop
 	mov eax, y ;eax = y
@@ -179,6 +202,7 @@ vertical_line_loop:
 	loop vertical_line_loop
 endm
 
+; un macro ca sa apelam mai usor desenarea butoanelor
 make_button_macro macro x, y, buttonsize, color
 	make_horizontal_line_macro x, y, button_size, color
 	make_horizontal_line_macro x, y + button_size, button_size, color
@@ -220,6 +244,111 @@ evt_click:
 	and ebx, 7
 	inc ebx
 	
+evt_click_9:
+	mov eax, [ebp+arg2]
+	cmp eax, button_9_x
+	jl evt_click_8
+	cmp eax, button_9_x + button_size
+	jg evt_click_8
+	mov eax, [ebp+arg3]
+	cmp eax, button_9_y
+	jl evt_click_8
+	cmp eax, button_9_y + button_size
+	jg evt_click_8
+	make_text_macro '9', area, 30, 90
+	
+evt_click_8:
+	mov eax, [ebp+arg2]
+	cmp eax, button_8_x
+	jl evt_click_7
+	cmp eax, button_8_x + button_size
+	jg evt_click_7
+	mov eax, [ebp+arg3]
+	cmp eax, button_8_y
+	jl evt_click_7
+	cmp eax, button_8_y + button_size
+	jg evt_click_7
+	make_text_macro '8', area, 30, 90
+	
+evt_click_7:
+	
+evt_click_plus:
+	mov eax, [ebp+arg2]
+	cmp eax, button_plus_x
+	jl evt_click_minus
+	cmp eax, button_plus_x + button_size
+	jg evt_click_minus
+	mov eax, [ebp+arg3]
+	cmp eax, button_plus_y
+	jl evt_click_minus
+	cmp eax, button_plus_y + button_size
+	jg evt_click_minus
+	make_text_macro '+', area, 30, 90
+
+evt_click_minus:
+	mov eax, [ebp+arg2]
+	cmp eax, button_minus_x
+	jl evt_click_times
+	cmp eax, button_minus_x + button_size
+	jg evt_click_times
+	mov eax, [ebp+arg3]
+	cmp eax, button_minus_y
+	jl evt_click_times
+	cmp eax, button_minus_y + button_size
+	jg evt_click_times
+	make_text_macro '-', area, 30, 90
+	
+evt_click_times:
+	mov eax, [ebp+arg2]
+	cmp eax, button_times_x
+	jl evt_click_divided
+	cmp eax, button_times_x + button_size
+	jg evt_click_divided
+	mov eax, [ebp+arg3]
+	cmp eax, button_times_y
+	jl evt_click_divided
+	cmp eax, button_times_y + button_size
+	jg evt_click_divided
+	make_text_macro '*', area, 30, 90
+	
+evt_click_divided:
+	mov eax, [ebp+arg2]
+	cmp eax, button_divided_x
+	jl evt_click_equal
+	cmp eax, button_divided_x + button_size
+	jg evt_click_equal
+	mov eax, [ebp+arg3]
+	cmp eax, button_divided_y
+	jl evt_click_equal
+	cmp eax, button_divided_y + button_size
+	jg evt_click_equal
+	make_text_macro '/', area, 30, 90
+
+evt_click_equal:
+	mov eax, [ebp+arg2]
+	cmp eax, button_equal_x
+	jl evt_click_clear
+	cmp eax, button_equal_x + button_size
+	jg evt_click_clear
+	mov eax, [ebp+arg3]
+	cmp eax, button_equal_y
+	jl evt_click_clear
+	cmp eax, button_equal_y + button_size
+	jg evt_click_clear
+	make_text_macro '=', area, 30, 90
+	
+evt_click_clear:
+	mov eax, [ebp+arg2]
+	cmp eax, button_clear_x
+	jl evt_timer
+	cmp eax, button_clear_x + button_size
+	jg evt_timer
+	mov eax, [ebp+arg3]
+	cmp eax, button_clear_y
+	jl evt_timer
+	cmp eax, button_clear_y + button_size
+	jg evt_timer
+	make_text_macro 'C', area, 30, 90
 evt_timer:
 	inc counter
 	
@@ -276,8 +405,6 @@ afisare_litere:
 	make_button_macro 240, 520, button_size, 0
 	make_text_macro '=', area, 295, 575
 	
-	make_button_macro 360, 40, button_size, 0
-	make_text_macro 'D', area, 415, 95
 	make_button_macro 360, 160, button_size, 0
 	make_text_macro '/', area, 415, 215
 	make_button_macro 360, 280, button_size, 0
@@ -286,10 +413,6 @@ afisare_litere:
 	make_text_macro '-', area, 415, 455
 	make_button_macro 360, 520, button_size, 0
 	make_text_macro '+', area, 415, 575
-	
-	
-	
-	
 	
 final_draw:
 	popa
