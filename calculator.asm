@@ -60,7 +60,11 @@ button_equal_y equ 520
 button_clear_x equ 0
 button_clear_y equ 520
 
-
+nr1 dd 0
+nr2 dd 0
+rez dd 0
+op1 dd -1
+op2 dd 0
 
 counter dd 0 ; numara evenimentele de tip timer
 
@@ -94,6 +98,7 @@ make_text proc ;grafica
 	sub eax, 'A'
 	lea esi, letters
 	jmp draw_text
+	
 make_digit:
 	cmp eax, '0'
 	jl make_plus
@@ -102,36 +107,42 @@ make_digit:
 	sub eax, '0'
 	lea esi, digits
 	jmp draw_text
+	
 make_plus:
 	cmp eax, '+'
 	jne make_minus
 	mov eax, 0
 	lea esi, symbols
 	jmp draw_text
+	
 make_minus:
 	cmp eax, '-'
 	jne make_times
 	mov eax, 1
 	lea esi, symbols
 	jmp draw_text
+	
 make_times:
 	cmp eax, "*"
 	jne make_divided
 	mov eax, 2
 	lea esi, symbols
 	jmp draw_text
+	
 make_divided:
 	cmp eax, "/"
 	jne make_equal
 	mov eax, 3
 	lea esi, symbols
 	jmp draw_text
+	
 make_equal:
 	cmp eax, "="
 	jne make_space
 	mov eax, 4
 	lea esi, symbols
 	jmp draw_text
+	
 make_space:	
 	mov eax, 26 ; de la 0 pana la 25 sunt litere, 26 e space
 	lea esi, letters
@@ -400,6 +411,7 @@ evt_click_plus:
 	cmp eax, button_plus_y + button_size
 	jg evt_click_minus
 	make_text_macro '+', area, 30, 90
+	mov op1, 0
 
 evt_click_minus:
 	mov eax, [ebp+arg2]
@@ -413,6 +425,7 @@ evt_click_minus:
 	cmp eax, button_minus_y + button_size
 	jg evt_click_times
 	make_text_macro '-', area, 30, 90
+	mov op1, 1
 	
 evt_click_times:
 	mov eax, [ebp+arg2]
@@ -426,6 +439,7 @@ evt_click_times:
 	cmp eax, button_times_y + button_size
 	jg evt_click_divided
 	make_text_macro '*', area, 30, 90
+	mov op1, 2
 	
 evt_click_divided:
 	mov eax, [ebp+arg2]
@@ -439,6 +453,7 @@ evt_click_divided:
 	cmp eax, button_divided_y + button_size
 	jg evt_click_equal
 	make_text_macro '/', area, 30, 90
+	mov op1, 3
 
 evt_click_equal:
 	mov eax, [ebp+arg2]
@@ -452,6 +467,7 @@ evt_click_equal:
 	cmp eax, button_equal_y + button_size
 	jg evt_click_clear
 	make_text_macro '=', area, 30, 90
+	mov op2, 1
 	
 evt_click_clear:
 	mov eax, [ebp+arg2]
@@ -468,8 +484,7 @@ evt_click_clear:
 evt_timer:
 	inc counter
 	
-afisare_litere:
-	;scriem un mesaj
+titlu:
 	make_text_macro 'W', area, title_start_x, 10
 	make_text_macro 'I', area, title_start_x + 10, 10
 	make_text_macro 'N', area, title_start_x + 20, 10
@@ -487,48 +502,61 @@ afisare_litere:
 	make_text_macro 'T', area, title_start_x + 140, 10
 	make_text_macro 'O', area, title_start_x + 150, 10
 	make_text_macro 'R', area, title_start_x + 160, 10
-	
+
+border:
 	make_horizontal_line_macro 0, 0, 480, 0
 	make_horizontal_line_macro 0, 40, 480, 0
 	make_vertical_line_macro 0, 0, 160, 0
 	make_vertical_line_macro 480, 0, 160, 0
-	
-	make_button_macro 0, 160, button_size, 0
+
+buttons:
+	make_button_macro button_9_x, button_9_y, button_size, 0
 	make_text_macro '9', area, 55, 215
-	make_button_macro 120, 160, button_size, 0
+	
+	make_button_macro button_8_x, button_8_y, button_size, 0
 	make_text_macro '8', area, 175, 215
-	make_button_macro 240, 160, button_size, 0
+	
+	make_button_macro button_7_x, button_7_y, button_size, 0
 	make_text_macro '7', area, 295, 215
 	
-	make_button_macro 0, 280, button_size, 0
+	make_button_macro button_6_x, button_6_y, button_size, 0
 	make_text_macro '6', area, 55, 335
-	make_button_macro 120, 280, button_size, 0
+	
+	make_button_macro button_5_x, button_5_y, button_size, 0
 	make_text_macro '5', area, 175, 335
-	make_button_macro 240, 280, button_size, 0
+	
+	make_button_macro button_4_x, button_4_y, button_size, 0
 	make_text_macro '4', area, 295, 335
 	
-	make_button_macro 0, 400, button_size, 0
+	make_button_macro button_3_x, button_3_y, button_size, 0
 	make_text_macro '3', area, 55, 455
-	make_button_macro 120, 400, button_size, 0
+	
+	make_button_macro button_2_x, button_2_y, button_size, 0
 	make_text_macro '2', area, 175, 455
-	make_button_macro 240, 400, button_size, 0
+	
+	make_button_macro button_1_x, button_1_y, button_size, 0
 	make_text_macro '1', area, 295, 455
 	
-	make_button_macro 0, 520, button_size, 0
-	make_text_macro 'C', area, 55, 575
-	make_button_macro 120, 520, button_size, 0
+	make_button_macro button_0_x, button_0_y, button_size, 0
 	make_text_macro '0', area, 175, 575
-	make_button_macro 240, 520, button_size, 0
+	
+	make_button_macro button_plus_x, button_plus_y, button_size, 0
+	make_text_macro '+', area, 415, 575
+	
+	make_button_macro button_minus_x, button_minus_y, button_size, 0
+	make_text_macro '-', area, 415, 455
+	
+	make_button_macro button_times_x, button_times_y, button_size, 0
+	make_text_macro '*', area, 415, 335
+	
+	make_button_macro button_divided_x, button_divided_y, button_size, 0
+	make_text_macro '/', area, 415, 215
+	
+	make_button_macro button_equal_x, button_equal_y, button_size, 0
 	make_text_macro '=', area, 295, 575
 	
-	make_button_macro 360, 160, button_size, 0
-	make_text_macro '/', area, 415, 215
-	make_button_macro 360, 280, button_size, 0
-	make_text_macro '*', area, 415, 335
-	make_button_macro 360, 400, button_size, 0
-	make_text_macro '-', area, 415, 455
-	make_button_macro 360, 520, button_size, 0
-	make_text_macro '+', area, 415, 575
+	make_button_macro button_clear_x, button_clear_y, button_size, 0
+	make_text_macro 'C', area, 55, 575
 	
 final_draw:
 	popa
