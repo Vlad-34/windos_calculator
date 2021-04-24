@@ -24,7 +24,10 @@ area_width equ 480
 area_height equ 640
 area dd 0
 
-title_start_x equ 155
+title_x equ 155
+title_y equ 10
+display_x equ 30
+display_y equ 90
 button_size equ 120
 
 button_9_x equ 0
@@ -63,7 +66,7 @@ button_clear_y equ 520
 nr1 dd 0
 nr2 dd 0
 rez dd 0
-op1 dd -1
+op1 dd 0
 op2 dd 0
 
 counter dd 0 ; numara evenimentele de tip timer
@@ -280,7 +283,7 @@ evt_click_9:
 	jl evt_click_8
 	cmp eax, button_9_y + button_size
 	jg evt_click_8
-	make_text_macro '9', area, 30, 90
+	make_text_macro '9', area, display_x, display_y
 	
 evt_click_8:
 	mov eax, [ebp+arg2]
@@ -293,7 +296,7 @@ evt_click_8:
 	jl evt_click_7
 	cmp eax, button_8_y + button_size
 	jg evt_click_7
-	make_text_macro '8', area, 30, 90
+	make_text_macro '8', area, display_x, display_y
 	
 evt_click_7:
 	mov eax, [ebp+arg2]
@@ -306,7 +309,7 @@ evt_click_7:
 	jl evt_click_6
 	cmp eax, button_7_y + button_size
 	jg evt_click_6
-	make_text_macro '7', area, 30, 90
+	make_text_macro '7', area, display_x, display_y
 
 evt_click_6:
 	mov eax, [ebp+arg2]
@@ -319,7 +322,7 @@ evt_click_6:
 	jl evt_click_5
 	cmp eax, button_6_y + button_size
 	jg evt_click_5
-	make_text_macro '6', area, 30, 90
+	make_text_macro '6', area, display_x, display_y
 	
 evt_click_5:
 	mov eax, [ebp+arg2]
@@ -332,7 +335,7 @@ evt_click_5:
 	jl evt_click_4
 	cmp eax, button_5_y + button_size
 	jg evt_click_4
-	make_text_macro '5', area, 30, 90
+	make_text_macro '5', area, display_x, display_y
 	
 evt_click_4:
 	mov eax, [ebp+arg2]
@@ -345,7 +348,7 @@ evt_click_4:
 	jl evt_click_3
 	cmp eax, button_4_y + button_size
 	jg evt_click_3
-	make_text_macro '4', area, 30, 90
+	make_text_macro '4', area, display_x, display_y
 
 evt_click_3:
 	mov eax, [ebp+arg2]
@@ -358,7 +361,7 @@ evt_click_3:
 	jl evt_click_2
 	cmp eax, button_3_y + button_size
 	jg evt_click_2
-	make_text_macro '3', area, 30, 90
+	make_text_macro '3', area, display_x, display_y
 
 evt_click_2:
 	mov eax, [ebp+arg2]
@@ -371,7 +374,7 @@ evt_click_2:
 	jl evt_click_1
 	cmp eax, button_2_y + button_size
 	jg evt_click_1
-	make_text_macro '2', area, 30, 90
+	make_text_macro '2', area, display_x, display_y
 	
 evt_click_1:
 	mov eax, [ebp+arg2]
@@ -384,7 +387,7 @@ evt_click_1:
 	jl evt_click_0
 	cmp eax, button_1_y + button_size
 	jg evt_click_0
-	make_text_macro '1', area, 30, 90
+	make_text_macro '1', area, display_x, display_y
 	
 evt_click_0:
 	mov eax, [ebp+arg2]
@@ -397,7 +400,7 @@ evt_click_0:
 	jl evt_click_plus
 	cmp eax, button_0_y + button_size
 	jg evt_click_plus
-	make_text_macro '0', area, 30, 90
+	make_text_macro '0', area, display_x, display_y
 	
 evt_click_plus:
 	mov eax, [ebp+arg2]
@@ -410,8 +413,10 @@ evt_click_plus:
 	jl evt_click_minus
 	cmp eax, button_plus_y + button_size
 	jg evt_click_minus
-	make_text_macro '+', area, 30, 90
-	mov op1, 0
+	make_text_macro '+', area, display_x, display_y
+	cmp op1, 0
+	jz evt_click_minus
+	mov op1, 1
 
 evt_click_minus:
 	mov eax, [ebp+arg2]
@@ -424,8 +429,10 @@ evt_click_minus:
 	jl evt_click_times
 	cmp eax, button_minus_y + button_size
 	jg evt_click_times
-	make_text_macro '-', area, 30, 90
-	mov op1, 1
+	make_text_macro '-', area, display_x, display_y
+	cmp op1, 0
+	jz evt_click_times
+	mov op1, 2
 	
 evt_click_times:
 	mov eax, [ebp+arg2]
@@ -438,8 +445,10 @@ evt_click_times:
 	jl evt_click_divided
 	cmp eax, button_times_y + button_size
 	jg evt_click_divided
-	make_text_macro '*', area, 30, 90
-	mov op1, 2
+	make_text_macro '*', area, display_x, display_y
+	cmp op1, 0
+	jz evt_click_divided
+	mov op1, 3
 	
 evt_click_divided:
 	mov eax, [ebp+arg2]
@@ -452,8 +461,10 @@ evt_click_divided:
 	jl evt_click_equal
 	cmp eax, button_divided_y + button_size
 	jg evt_click_equal
-	make_text_macro '/', area, 30, 90
-	mov op1, 3
+	make_text_macro '/', area, display_x, display_y
+	cmp op1, 0
+	jz evt_click_equal
+	mov op1, 4
 
 evt_click_equal:
 	mov eax, [ebp+arg2]
@@ -466,7 +477,9 @@ evt_click_equal:
 	jl evt_click_clear
 	cmp eax, button_equal_y + button_size
 	jg evt_click_clear
-	make_text_macro '=', area, 30, 90
+	make_text_macro '=', area, display_x, display_y
+	cmp op2, 0
+	jz evt_click_clear
 	mov op2, 1
 	
 evt_click_clear:
@@ -480,28 +493,28 @@ evt_click_clear:
 	jl evt_timer
 	cmp eax, button_clear_y + button_size
 	jg evt_timer
-	make_text_macro 'C', area, 30, 90
+	make_text_macro 'C', area, display_x, display_y
 evt_timer:
 	inc counter
 	
-titlu:
-	make_text_macro 'W', area, title_start_x, 10
-	make_text_macro 'I', area, title_start_x + 10, 10
-	make_text_macro 'N', area, title_start_x + 20, 10
-	make_text_macro 'D', area, title_start_x + 30, 10
-	make_text_macro 'O', area, title_start_x + 40, 10
-	make_text_macro 'S', area, title_start_x + 50, 10
+afisare_litere:
+	make_text_macro 'W', area, title_x, title_y
+	make_text_macro 'I', area, title_x + 10, title_y
+	make_text_macro 'N', area, title_x + 20, title_y
+	make_text_macro 'D', area, title_x + 30, title_y
+	make_text_macro 'O', area, title_x + 40, title_y
+	make_text_macro 'S', area, title_x + 50, title_y
 	
-	make_text_macro 'C', area, title_start_x + 70, 10
-	make_text_macro 'A', area, title_start_x + 80, 10
-	make_text_macro 'L', area, title_start_x + 90, 10
-	make_text_macro 'C', area, title_start_x + 100, 10
-	make_text_macro 'U', area, title_start_x + 110, 10
-	make_text_macro 'L', area, title_start_x + 120, 10
-	make_text_macro 'A', area, title_start_x + 130, 10
-	make_text_macro 'T', area, title_start_x + 140, 10
-	make_text_macro 'O', area, title_start_x + 150, 10
-	make_text_macro 'R', area, title_start_x + 160, 10
+	make_text_macro 'C', area, title_x + 70, title_y
+	make_text_macro 'A', area, title_x + 80, title_y
+	make_text_macro 'L', area, title_x + 90, title_y
+	make_text_macro 'C', area, title_x + 100, title_y
+	make_text_macro 'U', area, title_x + 110, title_y
+	make_text_macro 'L', area, title_x + 120, title_y
+	make_text_macro 'A', area, title_x + 130, title_y
+	make_text_macro 'T', area, title_x + 140, title_y
+	make_text_macro 'O', area, title_x + 150, title_y
+	make_text_macro 'R', area, title_x + 160, title_y
 
 border:
 	make_horizontal_line_macro 0, 0, 480, 0
