@@ -33,6 +33,20 @@ button_8_x equ 120
 button_8_y equ 160
 button_7_x equ 240
 button_7_y equ 160
+button_6_x equ 0
+button_6_y equ 280
+button_5_x equ 120
+button_5_y equ 280
+button_4_x equ 240
+button_4_y equ 280
+button_3_x equ 0
+button_3_y equ 400
+button_2_x equ 120
+button_2_y equ 400
+button_1_x equ 240
+button_1_y equ 400
+button_0_x equ 120
+button_0_y equ 520
 button_plus_x equ 360
 button_plus_y equ 520
 button_minus_x equ 360
@@ -271,6 +285,108 @@ evt_click_8:
 	make_text_macro '8', area, 30, 90
 	
 evt_click_7:
+	mov eax, [ebp+arg2]
+	cmp eax, button_7_x
+	jl evt_click_6
+	cmp eax, button_7_x + button_size
+	jg evt_click_6
+	mov eax, [ebp+arg3]
+	cmp eax, button_7_y
+	jl evt_click_6
+	cmp eax, button_7_y + button_size
+	jg evt_click_6
+	make_text_macro '7', area, 30, 90
+
+evt_click_6:
+	mov eax, [ebp+arg2]
+	cmp eax, button_6_x
+	jl evt_click_5
+	cmp eax, button_6_x + button_size
+	jg evt_click_5
+	mov eax, [ebp+arg3]
+	cmp eax, button_6_y
+	jl evt_click_5
+	cmp eax, button_6_y + button_size
+	jg evt_click_5
+	make_text_macro '6', area, 30, 90
+	
+evt_click_5:
+	mov eax, [ebp+arg2]
+	cmp eax, button_5_x
+	jl evt_click_4
+	cmp eax, button_5_x + button_size
+	jg evt_click_4
+	mov eax, [ebp+arg3]
+	cmp eax, button_5_y
+	jl evt_click_4
+	cmp eax, button_5_y + button_size
+	jg evt_click_4
+	make_text_macro '5', area, 30, 90
+	
+evt_click_4:
+	mov eax, [ebp+arg2]
+	cmp eax, button_4_x
+	jl evt_click_3
+	cmp eax, button_4_x + button_size
+	jg evt_click_3
+	mov eax, [ebp+arg3]
+	cmp eax, button_4_y
+	jl evt_click_3
+	cmp eax, button_4_y + button_size
+	jg evt_click_3
+	make_text_macro '4', area, 30, 90
+
+evt_click_3:
+	mov eax, [ebp+arg2]
+	cmp eax, button_3_x
+	jl evt_click_2
+	cmp eax, button_3_x + button_size
+	jg evt_click_2
+	mov eax, [ebp+arg3]
+	cmp eax, button_3_y
+	jl evt_click_2
+	cmp eax, button_3_y + button_size
+	jg evt_click_2
+	make_text_macro '3', area, 30, 90
+
+evt_click_2:
+	mov eax, [ebp+arg2]
+	cmp eax, button_2_x
+	jl evt_click_1
+	cmp eax, button_2_x + button_size
+	jg evt_click_1
+	mov eax, [ebp+arg3]
+	cmp eax, button_2_y
+	jl evt_click_1
+	cmp eax, button_2_y + button_size
+	jg evt_click_1
+	make_text_macro '2', area, 30, 90
+	
+evt_click_1:
+	mov eax, [ebp+arg2]
+	cmp eax, button_1_x
+	jl evt_click_0
+	cmp eax, button_1_x + button_size
+	jg evt_click_0
+	mov eax, [ebp+arg3]
+	cmp eax, button_1_y
+	jl evt_click_0
+	cmp eax, button_1_y + button_size
+	jg evt_click_0
+	make_text_macro '1', area, 30, 90
+	
+evt_click_0:
+	mov eax, [ebp+arg2]
+	cmp eax, button_0_x
+	jl evt_click_plus
+	cmp eax, button_0_x + button_size
+	jg evt_click_plus
+	mov eax, [ebp+arg3]
+	cmp eax, button_0_y
+	jl evt_click_plus
+	cmp eax, button_0_y + button_size
+	jg evt_click_plus
+	make_text_macro '0', area, 30, 90
 	
 evt_click_plus:
 	mov eax, [ebp+arg2]
