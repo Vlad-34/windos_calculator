@@ -28,8 +28,8 @@ title_x equ 155
 title_y equ 10
 display_x equ 30
 display_y equ 90
+cursor equ 0
 button_size equ 120
-
 button_9_x equ 0
 button_9_y equ 160
 button_8_x equ 120
@@ -63,11 +63,23 @@ button_equal_y equ 520
 button_clear_x equ 0
 button_clear_y equ 520
 
+zero dd 0
+one dd 1
+two dd 2
+three dd 3
+four dd 4
+five dd 5
+six dd 6
+seven dd 7
+eight dd 8
+nine dd 9
+
 nr1 dd 0
 nr2 dd 0
 rez dd 0
 op1 dd 0
-op2 dd 0
+op2 dd 0 ;egal
+ten dd 10
 
 counter dd 0 ; numara evenimentele de tip timer
 
@@ -78,6 +90,7 @@ arg4 equ 20 ;y
 
 symbol_width equ 10
 symbol_height equ 20
+
 include digits.inc
 include letters.inc
 include symbols.inc
@@ -88,6 +101,119 @@ include symbols.inc
 ; arg2 - pointer la vectorul de pixeli
 ; arg3 - pos_x
 ; arg4 - pos_y
+
+stick proc
+	push ebp
+	mov ebp, esp
+	mov eax, [ebp-4]
+	mov ebx, ten
+	mul ebx
+	add eax, [ebp-8]
+	mov esp, ebp
+	pop ebp
+	ret 8 ;cele 2 cifre
+stick endp
+
+arithm proc
+	push ebp
+	mov ebp, esp
+	mov eax, [ebp+12]
+plus:
+	cmp eax, '+'
+	jnz minus
+	mov eax, [ebp+8]
+	add eax, [ebp+16]
+	jmp end_arithm
+minus:
+	cmp eax, '-'
+	jnz time
+	mov eax, [ebp+8]
+	sub eax, [ebp+16]
+	jmp end_arithm
+time:
+	cmp eax, '*'
+	jnz divided
+	mov eax, [ebp+8]
+	mov ecx, [ebp+16]
+	mul ecx
+	jmp end_arithm
+divided:
+	cmp eax, '/'
+	jnz end_arithm
+	mov eax, [ebp+8]
+	mov ecx, [ebp+16]
+	div ecx
+end_arithm:
+	mov esp, ebp
+	pop ebp
+	ret 12
+arithm endp
+
+print_number_macro macro nr, cursor
+local number0, number1, number2, number3, number4, number5, number6, number7, number8, number9, skip_print, skip_print2, skip_print3
+	cmp nr, 0
+	je number0
+	cmp nr, 1
+	je number1
+	cmp nr, 2
+	je number2
+	cmp nr, 3
+	je number3
+	cmp nr, 4
+	je number4
+	cmp nr, 5
+	je number5
+	cmp nr, 6
+	je number6
+	cmp nr, 7
+	je number7
+	cmp nr, 8
+	je number8
+	cmp nr, 9
+	je number9
+	jmp skip_print
+number0:
+	make_text_macro '0', area, cursor, display_y
+	jmp skip_print
+number1:
+	make_text_macro '1', area, cursor, display_y
+	jmp skip_print
+number2:
+	make_text_macro '2', area, cursor, display_y
+	jmp skip_print
+number3:
+	make_text_macro '3', area, cursor, display_y
+	jmp skip_print
+number4:
+	make_text_macro '4', area, cursor, display_y
+	jmp skip_print
+number5:
+	make_text_macro '5', area, cursor, display_y
+	jmp skip_print
+number6:
+	make_text_macro '6', area, cursor, display_y
+	jmp skip_print
+number7:
+	make_text_macro '7', area, cursor, display_y
+	jmp skip_print
+number8:
+	make_text_macro '8', area, cursor, display_y
+	jmp skip_print
+number9:
+	make_text_macro '9', area, cursor, display_y
+	jmp skip_print
+skip_print:
+	cmp op2, 1
+	je skip_print2
+	mov eax, cursor
+	add eax, 10
+	jmp skip_print3
+skip_print2:
+	mov eax, cursor
+	sub eax, 10
+skip_print3:
+endm
+
 make_text proc ;grafica
 	push ebp
 	mov ebp, esp
@@ -175,7 +301,7 @@ bucla_simbol_coloane:
 	mov dword ptr [edi], 0
 	jmp simbol_pixel_next
 simbol_pixel_alb:
-	mov dword ptr [edi], 0FFFFFFh
+	mov dword ptr [edi], 0ffffffh
 simbol_pixel_next:
 	inc esi
 	add edi, 4
@@ -271,7 +397,7 @@ evt_click:
 	mov ebx, [ebp+arg3]
 	and ebx, 7
 	inc ebx
-	
+
 evt_click_9:
 	mov eax, [ebp+arg2]
 	cmp eax, button_9_x
@@ -283,7 +409,7 @@ evt_click_9:
 	jl evt_click_8
 	cmp eax, button_9_y + button_size
 	jg evt_click_8
-	make_text_macro '9', area, display_x, display_y
+	make_text_macro '9', area, display_x + cursor, display_y
 	
 evt_click_8:
 	mov eax, [ebp+arg2]
@@ -413,7 +539,7 @@ evt_click_plus:
 	jl evt_click_minus
 	cmp eax, button_plus_y + button_size
 	jg evt_click_minus
-	make_text_macro '+', area, display_x, display_y
+	make_text_macro '+', area, display_x + cursor, display_y
 	cmp op1, 0
 	jz evt_click_minus
 	mov op1, 1
@@ -429,7 +555,7 @@ evt_click_minus:
 	jl evt_click_times
 	cmp eax, button_minus_y + button_size
 	jg evt_click_times
-	make_text_macro '-', area, display_x, display_y
+	make_text_macro '-', area, display_x + cursor, display_y
 	cmp op1, 0
 	jz evt_click_times
 	mov op1, 2
@@ -445,7 +571,7 @@ evt_click_times:
 	jl evt_click_divided
 	cmp eax, button_times_y + button_size
 	jg evt_click_divided
-	make_text_macro '*', area, display_x, display_y
+	make_text_macro '*', area, display_x + cursor, display_y
 	cmp op1, 0
 	jz evt_click_divided
 	mov op1, 3
@@ -461,7 +587,7 @@ evt_click_divided:
 	jl evt_click_equal
 	cmp eax, button_divided_y + button_size
 	jg evt_click_equal
-	make_text_macro '/', area, display_x, display_y
+	make_text_macro '/', area, display_x + cursor, display_y
 	cmp op1, 0
 	jz evt_click_equal
 	mov op1, 4
@@ -494,6 +620,7 @@ evt_click_clear:
 	cmp eax, button_clear_y + button_size
 	jg evt_timer
 	make_text_macro 'C', area, display_x, display_y
+	
 evt_timer:
 	inc counter
 	
