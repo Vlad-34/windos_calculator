@@ -7,6 +7,7 @@ includelib msvcrt.lib
 extern exit: proc
 extern malloc: proc
 extern memset: proc
+extern printf: proc
 
 includelib canvas.lib
 extern BeginDrawing: proc
@@ -19,7 +20,7 @@ public start
 ;sectiunile programului, date, respectiv cod
 .data
 ;aici declaram date
-window_title db "(c) Vlad Ursache",0
+window_title db "(c) Vlad Ursache", 0
 area_width equ 480
 area_height equ 640
 area dd 0
@@ -27,7 +28,7 @@ area dd 0
 title_x equ 155
 title_y equ 10
 cursor dd 0
-contor dd 0
+clear_counter dd ?
 button_size equ 120
 button_9_x equ 0
 button_9_y equ 160
@@ -80,6 +81,8 @@ arg4 equ 20 ;y
 symbol_width equ 10
 symbol_height equ 20
 
+format_d db "%d", 0
+
 include digits.inc
 include letters.inc
 include symbols.inc
@@ -90,17 +93,6 @@ include symbols.inc
 ; arg2 - pointer la vectorul de pixeli
 ; arg3 - pos_x
 ; arg4 - pos_y
-
-glue proc
-	push ebp
-	mov ebp, esp
-	mov eax, [ebp-4]
-	mov ebx, ten
-	mul ebx
-	add eax, [ebp-8]
-	mov esp, ebp
-	pop ebp
-glue endp
 
 arithm proc
 	push ebp
@@ -279,7 +271,7 @@ make_button_macro macro x, y, buttonsize, color
 endm
 
 evt_click_buttons_macro macro button_x, button_y, buttonsize, number
-local fail_click
+local fail_click, glue_nr1, glue_nr2
 	mov eax, [ebp+arg2]
 	cmp eax, button_x
 	jl fail_click
@@ -290,11 +282,31 @@ local fail_click
 	jl fail_click
 	cmp eax, button_y + buttonsize
 	jg fail_click
+	mov ecx,1 ;
 	add cursor, 30
 	make_text_macro number, area, cursor, 90
 	sub cursor, 20
-	mov op1, 0
+
+	
+	cmp op1, 0
+	jne glue_nr2
+glue_nr1:
+	mov eax,nr1
+	mul ten
+	add eax,number
+	sub eax, 48
+	mov nr1, eax
+	jmp fail_click
+
+glue_nr2:
+	mov eax,nr2
+	mul ten
+	add eax,number
+	sub eax, 48
+	mov nr2, eax
+
 fail_click:
+	
 endm
 
 ; functia de desenare - se apeleaza la fiecare click
@@ -309,7 +321,7 @@ draw proc
 	
 	mov eax, [ebp+arg1]
 	cmp eax, 1
-	jz evt_click
+	jz evt_click_buttons
 	cmp eax, 2
 	jz evt_timer ; nu s-a efectuat click pe nimic
 	;mai jos e codul care intializeaza fereastra cu pixeli albi
@@ -323,26 +335,40 @@ draw proc
 	call memset
 	add esp, 12
 	jmp afisare_litere
-	
-evt_click:
-	mov edi, area
-	mov ecx, area_height
-	mov ebx, [ebp+arg3]
-	and ebx, 7
-	inc ebx
-	
+
 evt_click_buttons:
 	evt_click_buttons_macro button_9_x, button_9_y, button_size, '9'
+	cmp ecx,1
+	je evt_click_plus
 	evt_click_buttons_macro button_8_x, button_8_y, button_size, '8'
+	cmp ecx,1
+	je evt_click_plus
 	evt_click_buttons_macro button_7_x, button_7_y, button_size, '7'
+	cmp ecx,1
+	je evt_click_plus
 	evt_click_buttons_macro button_6_x, button_6_y, button_size, '6'
+	cmp ecx,1
+	je evt_click_plus
 	evt_click_buttons_macro button_5_x, button_5_y, button_size, '5'
+	cmp ecx,1
+	je evt_click_plus
 	evt_click_buttons_macro button_4_x, button_4_y, button_size, '4'
+	cmp ecx,1
+	je evt_click_plus
 	evt_click_buttons_macro button_3_x, button_3_y, button_size, '3'
+	cmp ecx,1
+	je evt_click_plus
 	evt_click_buttons_macro button_2_x, button_2_y, button_size, '2'
+	cmp ecx,1
+	je evt_click_plus
 	evt_click_buttons_macro button_1_x, button_1_y, button_size, '1'
+	cmp ecx,1
+	je evt_click_plus
 	evt_click_buttons_macro button_0_x, button_0_y, button_size, '0'
-
+	cmp ecx,1
+	je evt_click_plus
+	
+	
 evt_click_plus: 
 	mov eax, [ebp+arg2]
 	cmp eax, button_plus_x
@@ -354,16 +380,17 @@ evt_click_plus:
 	jl evt_click_minus
 	cmp eax, button_plus_y + button_size
 	jg evt_click_minus
+	cmp nr1,0
+	je final_eventuri
 	cmp op1, 0 ; daca o operatie e activa
-	jz plus_over
-	sub cursor, 10
+	jne final_eventuri
 plus_over:
-	mov op1, 1
+	mov op1, 0
 	add cursor, 30
 	make_text_macro '+', area, cursor , 90
 	sub cursor, 20
+	jmp final_eventuri
 	
-
 evt_click_minus:
 	mov eax, [ebp+arg2]
 	cmp eax, button_minus_x
@@ -375,17 +402,16 @@ evt_click_minus:
 	jl evt_click_times
 	cmp eax, button_minus_y + button_size
 	jg evt_click_times
-	cmp op1, 0 ; daca o operatie e activa, sari peste afisare
-	jz minus_over
-	sub cursor, 10
+	cmp nr1,0
+	je final_eventuri
+	cmp op1, 0 ; daca o operatie e activa
+	jne final_eventuri
 minus_over:
-	mov op1, 2
+	mov op1, 1
 	add cursor, 30
 	make_text_macro '-', area, cursor, 90
 	sub cursor, 20
-	; cmp op1, 0
-	; jz evt_click_times
-	; mov op1, 2
+	jmp final_eventuri
 	
 evt_click_times:
 	mov eax, [ebp+arg2]
@@ -398,17 +424,16 @@ evt_click_times:
 	jl evt_click_divided
 	cmp eax, button_times_y + button_size
 	jg evt_click_divided
-	cmp op1, 0 ; daca o operatie e activa, sari peste afisare
-	jz times_over
-	sub cursor, 10
+	cmp nr1,0
+	je final_eventuri
+	cmp op1, 0 ; daca o operatie e activa
+	jne final_eventuri
 times_over:
-	mov op1, 3
+	mov op1, 2
 	add cursor, 30
 	make_text_macro '*', area, cursor, 90
 	sub cursor, 20
-	; cmp op1, 0
-	; jz evt_click_divided
-	; mov op1, 3
+	jmp final_eventuri
 	
 evt_click_divided:
 	mov eax, [ebp+arg2]
@@ -421,17 +446,16 @@ evt_click_divided:
 	jl evt_click_equal
 	cmp eax, button_divided_y + button_size
 	jg evt_click_equal
-	cmp op1, 0 ; daca o operatie e activa, sari peste afisare
-	jz divided_over
-	sub cursor, 10
+	cmp nr1,0
+	je final_eventuri
+	cmp op1, 0 ; daca o operatie e activa
+	jne final_eventuri
 divided_over:
-	mov op1, 4
+	mov op1, 3
 	add cursor, 30
 	make_text_macro '/', area, cursor, 90
 	sub cursor, 20
-	; cmp op1, 0
-	; jz evt_click_equal
-	; mov op1, 4
+	jmp final_eventuri
 
 evt_click_equal:
 	mov eax, [ebp+arg2]
@@ -445,9 +469,6 @@ evt_click_equal:
 	cmp eax, button_equal_y + button_size
 	jg evt_click_clear
 	; cod
-	; cmp op2, 0
-	; jz evt_click_clear
-	; mov op2, 1
 	
 evt_click_clear:
 	mov eax, [ebp+arg2]
@@ -461,6 +482,22 @@ evt_click_clear:
 	cmp eax, button_clear_y + button_size
 	jg evt_timer
 	
+	mov cursor, 0
+	mov nr1, 0
+	mov op1, 0
+	mov ecx, 48
+	mov clear_counter, 470
+clear_loop:
+	make_text_macro ' ', area, clear_counter, 90
+	sub clear_counter, 10
+	loop clear_loop
+final_eventuri:
+
+	; push nr1
+	; push offset format_d
+	; call printf
+
+
 evt_timer:
 	inc counter
 	
@@ -537,6 +574,8 @@ buttons:
 	
 	make_button_macro button_clear_x, button_clear_y, button_size, 0
 	make_text_macro 'C', area, 55, 575
+	
+	
 	
 final_draw:
 	popa
