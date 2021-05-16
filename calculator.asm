@@ -27,6 +27,7 @@ area dd 0
 
 title_x equ 155
 title_y equ 10
+pozfin dd 30
 cursor dd 0
 clear_counter dd ?
 button_size equ 120
@@ -70,6 +71,8 @@ nr2 dd 0
 rez dd 0
 op1 dd 0
 op2 dd 0 ;egal
+dig dd 0
+first_op dd 1
 
 counter dd 0 ; numara evenimentele de tip timer
 
@@ -94,41 +97,11 @@ include symbols.inc
 ; arg3 - pos_x
 ; arg4 - pos_y
 
-arithm proc
-	push ebp
-	mov ebp, esp
-	mov eax, [ebp+12]
-plus:
-	cmp eax, '+'
-	jnz minus
-	mov eax, [ebp+8]
-	add eax, [ebp+16]
-	jmp end_arithm
-minus:
-	cmp eax, '-'
-	jnz time
-	mov eax, [ebp+8]
-	sub eax, [ebp+16]
-	jmp end_arithm
-time:
-	cmp eax, '*'
-	jnz divided
-	mov eax, [ebp+8]
-	mov ecx, [ebp+16]
-	mul ecx
-	jmp end_arithm
-divided:
-	cmp eax, '/'
-	jnz end_arithm
-	mov eax, [ebp+8]
-	mov ecx, [ebp+16]
-	div ecx
-end_arithm:
-	mov esp, ebp
-	pop ebp
-	ret 12
-arithm endp
-
+afisare macro nr
+	push nr
+	push offset format_d
+	call printf
+endm
 make_text proc ;grafica
 	push ebp
 	mov ebp, esp
@@ -282,12 +255,10 @@ local fail_click, glue_nr1, glue_nr2
 	jl fail_click
 	cmp eax, button_y + buttonsize
 	jg fail_click
-	mov ecx,1 ;
+	mov ecx,1
 	add cursor, 30
 	make_text_macro number, area, cursor, 90
 	sub cursor, 20
-
-	
 	cmp op1, 0
 	jne glue_nr2
 glue_nr1:
@@ -306,7 +277,6 @@ glue_nr2:
 	mov nr2, eax
 
 fail_click:
-	
 endm
 
 ; functia de desenare - se apeleaza la fiecare click
@@ -385,9 +355,22 @@ evt_click_plus:
 	cmp op1, 0 ; daca o operatie e activa
 	jne final_eventuri
 plus_over:
-	mov op1, 0
-	add cursor, 30
-	make_text_macro '+', area, cursor , 90
+	mov op1, 1
+	cmp nr1,10
+	jl jfinal_plus
+	push nr1
+	call digits_number
+	mov eax,ebx
+	mul ten
+	mov ebx,eax
+	add cursor, ebx
+	add cursor,10
+	jmp jfinal_plus2
+	jfinal_plus:
+	mov cursor,40
+	jfinal_plus2:
+
+	make_text_macro '+', area, cursor, 90
 	sub cursor, 20
 	jmp final_eventuri
 	
@@ -407,12 +390,21 @@ evt_click_minus:
 	cmp op1, 0 ; daca o operatie e activa
 	jne final_eventuri
 minus_over:
-	mov op1, 1
-	add cursor, 30
-	make_text_macro '-', area, cursor, 90
-	sub cursor, 20
-	jmp final_eventuri
-	
+	mov op1, 2
+	cmp nr1,10
+	jl jfinal_minus
+	push nr1
+	call digits_number
+	mov eax,ebx
+	mul ten
+	mov ebx,eax
+	add cursor, ebx
+	add cursor,10;
+	jmp jfinal_minus2
+	jfinal_minus:
+	mov cursor,40
+	jfinal_minus2:
+
 evt_click_times:
 	mov eax, [ebp+arg2]
 	cmp eax, button_times_x
@@ -429,8 +421,21 @@ evt_click_times:
 	cmp op1, 0 ; daca o operatie e activa
 	jne final_eventuri
 times_over:
-	mov op1, 2
-	add cursor, 30
+	mov op1, 3
+	cmp nr1,10
+	jl jfinal_times
+	push nr1
+	call digits_number
+	mov eax,ebx
+	mul ten
+	mov ebx,eax
+	add cursor, ebx
+	add cursor,10;
+	jmp jfinal_times2
+	jfinal_times:
+	mov cursor,40
+	jfinal_times2:
+
 	make_text_macro '*', area, cursor, 90
 	sub cursor, 20
 	jmp final_eventuri
@@ -451,13 +456,27 @@ evt_click_divided:
 	cmp op1, 0 ; daca o operatie e activa
 	jne final_eventuri
 divided_over:
-	mov op1, 3
-	add cursor, 30
+	mov op1, 4
+	cmp nr1,10
+	jl jfinal_over
+	push nr1
+	call digits_number
+	mov eax,ebx
+	mul ten
+	mov ebx,eax
+	add cursor, ebx
+	add cursor,10;
+	jmp jfinal_over2
+	jfinal_over:
+	mov cursor,40
+	jfinal_over2:
+
 	make_text_macro '/', area, cursor, 90
 	sub cursor, 20
 	jmp final_eventuri
 
 evt_click_equal:
+	mov first_op, 0
 	mov eax, [ebp+arg2]
 	cmp eax, button_equal_x
 	jl evt_click_clear
@@ -469,7 +488,55 @@ evt_click_equal:
 	cmp eax, button_equal_y + button_size
 	jg evt_click_clear
 	; cod
+	push nr2
+	push op1
+	push nr1
+	call arithm
 	
+	mov cursor, 0 ; clear
+	mov nr1, 0
+	mov op1, 0
+	mov ecx, 48
+	mov clear_counter, 470
+clear_loop2:
+	make_text_macro ' ', area, clear_counter, 90
+	sub clear_counter, 10
+	loop clear_loop2 ; clear
+	
+	
+	mov nr1, eax ;rez trece in nr1
+	mov op1, 0 
+	mov nr2, 0
+	mov op2, 0
+	
+	mov rez, eax
+	push rez ;numarul de cifre ale rezultatului
+	call digits_number
+	mov dig, ebx
+	
+	mov eax, dig
+	mul ten
+	mov pozfin,eax
+	add cursor, eax
+	add cursor, 20 ;indent
+	;good
+	
+	;while(rez!=0) { c=rez%10; rez/=10; show(c); }
+	
+	
+	mov eax, rez
+start_show:
+	xor edx, edx
+	div ten ; edx is last digit
+	add edx, 48 ; to ASCII
+	make_text_macro edx, area, cursor, 90
+	sub cursor, 10
+	cmp eax, 0
+	jne start_show
+	;sub cursor, 10
+	;jmp final_eventuri
+	
+	; bug?
 evt_click_clear:
 	mov eax, [ebp+arg2]
 	cmp eax, button_clear_x
@@ -584,6 +651,90 @@ final_draw:
 	ret
 draw endp
 
+
+
+arithm proc
+	push ebp
+	mov ebp, esp
+	mov eax, [ebp+12]
+plus:
+	cmp eax, 1
+	jne minus
+	mov eax, [ebp+8]
+	add eax, [ebp+16]
+	jmp end_arithm
+minus:
+	cmp eax, 2
+	jnz time
+	mov eax, [ebp+8]
+	sub eax, [ebp+16]
+	jmp end_arithm
+time:
+	cmp eax, 3
+	jnz divided
+	mov eax, [ebp+8]
+	mov ecx, [ebp+16]
+	mul ecx
+	jmp end_arithm
+divided:
+	cmp eax, 4
+	jnz end_arithm
+	mov eax, [ebp+8]
+	mov ecx, [ebp+16]
+	xor edx, edx
+	cmp ecx, 0
+	je ErrDiv0
+	div ecx
+ErrDiv0:
+
+	
+end_arithm:
+	mov esp, ebp
+	pop ebp
+	ret 12
+arithm endp
+
+digits_number proc
+	push ebp
+	mov ebp, esp
+	mov eax, [ebp+8]
+	xor ebx,ebx
+	
+start_digits: ; while(var!=0) { c++; var/=10; }
+	xor edx,edx
+	inc ebx
+	div ten
+	
+	cmp eax,0
+	jne start_digits
+	
+	mov esp, ebp
+	pop ebp
+	ret 4
+digits_number endp
+
+digits_number_pixels proc
+	push ebp
+	mov ebp, esp
+	mov eax, [ebp+8]
+	xor ebx,ebx
+	
+start_digits_pixels: ; while(var!=0) { c++; var/=10; }
+	xor edx,edx
+	inc ebx
+	div ten
+	
+	cmp eax,0
+	jne start_digits_pixels
+	
+	mov eax, ebx
+	mul ten
+	
+	mov esp, ebp
+	pop ebp
+	ret 4
+digits_number_pixels endp
+
 start:
 	;alocam memorie pentru zona de desenat
 	mov eax, area_width
@@ -604,6 +755,8 @@ start:
 	push offset window_title
 	call BeginDrawing
 	add esp, 20
+
+testing:
 	
 	;terminarea programului
 	push 0
