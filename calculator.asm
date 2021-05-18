@@ -279,6 +279,53 @@ glue_nr2:
 fail_click:
 endm
 
+bugfix macro nr1, cursor
+local tendigits,ninedigits,eightdigits,sevendigits,sixdigits,fivedigits,fourdigits,threedigits,end_bugfix
+	cmp nr1, 1000000000
+	jge tendigits
+	cmp nr1, 100000000
+	jge ninedigits
+	cmp nr1, 10000000
+	jge eightdigits
+	cmp nr1, 1000000
+	jge sevendigits
+	cmp nr1, 100000
+	jge sixdigits
+	cmp nr1, 10000
+	jge fivedigits
+	cmp nr1, 1000
+	jge fourdigits
+	cmp nr1, 100
+	jge threedigits
+
+threedigits:
+	sub cursor, 10
+	jmp end_bugfix
+fourdigits:
+	sub cursor, 20
+	jmp end_bugfix
+fivedigits:
+	sub cursor, 30
+	jmp end_bugfix
+sixdigits:
+	sub cursor, 40
+	jmp end_bugfix
+sevendigits:
+	sub cursor, 50
+	jmp end_bugfix
+eightdigits:
+	sub cursor, 60
+	jmp end_bugfix
+ninedigits:
+	sub cursor, 70
+	jmp end_bugfix
+tendigits:
+	sub cursor, 80
+	jmp end_bugfix
+end_bugfix:
+endm
+	
+
 ; functia de desenare - se apeleaza la fiecare click
 ; sau la fiecare interval de 200ms in care nu s-a dat click
 ; arg1 - evt (0 - initializare, 1 - click, 2 - s-a scurs intervalul fara click)
@@ -369,7 +416,12 @@ plus_over:
 	jfinal_plus:
 	mov cursor,40
 	jfinal_plus2:
-
+	
+	cmp first_op,1
+	jne skip_bugfix_plus
+	bugfix rez, cursor
+skip_bugfix_plus:
+	
 	make_text_macro '+', area, cursor, 90
 	sub cursor, 20
 	jmp final_eventuri
@@ -404,7 +456,16 @@ minus_over:
 	jfinal_minus:
 	mov cursor,40
 	jfinal_minus2:
-
+	
+	cmp first_op,1
+	jne skip_bugfix_minus
+	bugfix rez, cursor
+skip_bugfix_minus:
+	
+	make_text_macro '-', area, cursor, 90
+	sub cursor, 20
+	jmp final_eventuri
+	
 evt_click_times:
 	mov eax, [ebp+arg2]
 	cmp eax, button_times_x
@@ -435,6 +496,11 @@ times_over:
 	jfinal_times:
 	mov cursor,40
 	jfinal_times2:
+	
+	cmp first_op,1
+	jne skip_bugfix_times
+	bugfix rez, cursor
+skip_bugfix_times:
 
 	make_text_macro '*', area, cursor, 90
 	sub cursor, 20
@@ -470,7 +536,12 @@ divided_over:
 	jfinal_over:
 	mov cursor,40
 	jfinal_over2:
-
+	
+	cmp first_op,1
+	jne skip_bugfix_divided
+	bugfix rez, cursor
+skip_bugfix_divided:
+	
 	make_text_macro '/', area, cursor, 90
 	sub cursor, 20
 	jmp final_eventuri
