@@ -1,3 +1,4 @@
 # WindOS Calculator
 
-Proiect 10 la PLA
+GUI calculator written in Assembly
+Max grade
